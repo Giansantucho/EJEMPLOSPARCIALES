@@ -1,0 +1,64 @@
+import example.*
+
+describe "Turismo internacional" {
+	
+	const vaticano = new Sitio(precio = 1000, pais = "italia")
+	const parkAsterix = new SitioInfantil(precio = 2500, pais = "francia")
+	const torreEiffel = new SitioMayor(precio = 5000,descuento = 0.2, pais = "francia")
+	
+	const pedro = new Turista(edad = 7, millas = 30)
+	const martin = new Turista(edad = 16, millas = 120)
+	const lara = new Turista(edad = 69, millas = 49)
+
+	method initialize(){
+		sistemaTurismo.agregarTurista(pedro)
+		sistemaTurismo.agregarTurista(martin)
+		sistemaTurismo.agregarTurista(lara)
+		
+		sistemaTurismo.agregarSitio(vaticano)
+		sistemaTurismo.agregarSitio(parkAsterix)
+		sistemaTurismo.agregarSitio(torreEiffel)
+	}
+
+test "sitio comun" {
+
+	assert.that(vaticano.puedeSerVisitado(martin))
+
+}
+
+test "sitio infantil por un menor puede entrar" {
+
+	assert.that(parkAsterix.puedeSerVisitado(pedro))
+
+}
+
+test "sitio infantil por un menor no puede entrar si disminuye valor milla" {
+
+	sistemaTurismo.cotizacion(80)
+	assert.notThat(parkAsterix.puedeSerVisitado(pedro))
+
+}
+
+
+test "sitio adultos no puede entrar si no tiene millas suficientes" {
+
+	assert.notThat(torreEiffel.puedeSerVisitado(lara))
+
+}
+
+test "sitio adultos puede entrar con descuento " {
+
+	sistemaTurismo.pasoUnAnio()
+	assert.that(torreEiffel.puedeSerVisitado(lara))
+
+}
+
+test "sitio que visita un menor en francia " {
+	assert.equals([parkAsterix],sistemaTurismo.sitiosVisitables(pedro,"francia"))
+}
+
+test "sitios que visita un menor en francia con mas" {
+	assert.equals([parkAsterix,torreEiffel],sistemaTurismo.sitiosVisitables(martin,"francia"))
+}
+
+}
