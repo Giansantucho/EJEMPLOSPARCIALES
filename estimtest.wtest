@@ -1,0 +1,125 @@
+import example.*
+
+describe "Pruebas Punto 1" {
+	
+	const unDescuentoDirecto = new DescuentoDirecto(porcentaje = 0.4)
+	const otroDescuentoDirecto = new DescuentoDirecto(porcentaje = 0.7)
+	const unDescuentoFijo = new DescuentoFijo(montoFijo = 30)
+	const otroDescuentoFijo = new DescuentoFijo(montoFijo = 90)
+	const unDescuentoGratis = new DescuentoGratis()
+	const unDescuentoParaLosNoViolentos = new DescuentoDirectoSoloParaJuegosNoViolentos(porcentaje = 0.1)
+	
+	const unJuego = new Juego(precioBase = 100, descuento = unDescuentoDirecto)
+	const unJuego2 = new Juego(precioBase = 100, descuento = unDescuentoFijo, caracteristicas = ["violento", "divertido"])
+	
+	test "Se le aplica un descuento del 40% a un juego que sale 100 dolares" {
+	assert.equals(60, unJuego.precio())
+	}
+	
+	test "La plataforma le cambia el descuento al juego a otro del 70% a un juego que sale 100 dolares" {
+	plataforma.modificarDescuento(unJuego, otroDescuentoDirecto)
+	assert.equals(30, unJuego.precio())
+	}
+	
+	test "Se le aplica un descuento fijo de 30 dolares a un juego que sale 100 dolares" {
+	assert.equals(70, unJuego2.precio())
+	}
+	
+	test "La plataforma le cambia el descuento al juego a otro de 90 dólares a un juego que sale 100 dolares pero no se le puede descontar más de la mitad del precio original" {
+	plataforma.modificarDescuento(unJuego2, otroDescuentoFijo)
+	assert.equals(50, unJuego2.precio())
+	}
+	
+	test "La plataforma le cambia el descuento al juego a gratis a un juego que sale 100 dolares" {
+	plataforma.modificarDescuento(unJuego, unDescuentoGratis)
+	assert.equals(0, unJuego.precio())
+	}
+	
+	test "La plataforma le saca el descuento al juego que sale 100 dolares" {
+	plataforma.eliminarDescuento(unJuego)
+	assert.equals(100, unJuego.precio())
+	}
+	
+	
+	// Descuento inventado
+	test "La plataforma le cambia el descuento a uno solo para no violentos a un juego violento" {
+	plataforma.modificarDescuento(unJuego, unDescuentoParaLosNoViolentos)
+	assert.equals(unJuego.precio(), unJuego.precio())
+	}
+	
+	test "La plataforma le cambia el descuento a uno solo para no violentos a un juego no violento" {
+	plataforma.modificarDescuento(unJuego, unDescuentoParaLosNoViolentos)
+	assert.equals(90, unJuego.precio())
+	}
+	
+}
+
+describe "Pruebas Punto 3" {
+	const unJuego = new Juego(precioBase = 100)
+	const otroJuego = new Juego(precioBase = 200)
+	const unUsuarioPositivo = new Usuario(posicion = positiva)
+	const unUsuarioNegativo = new Usuario(posicion = negativa)
+	const otroUsuarioPositivo = new Usuario(posicion = positiva)
+	
+	
+	const criticoPago1 = new CriticoPago(juegosQueLePagaron = [unJuego, otroJuego])
+	const criticoPago2 = new CriticoPago()
+	const criticoPago3 = new CriticoPago(juegosQueLePagaron = [otroJuego])
+	
+	const unaRevista = new Revista(criticos = [unUsuarioPositivo, unUsuarioNegativo, criticoPago1, criticoPago2])
+	const otraRevista = new Revista(criticos = [unUsuarioPositivo, criticoPago1, criticoPago2])
+	const superRevista = new Revista(criticos = [otraRevista, criticoPago3])
+	const superRevistaPositiva = new Revista(criticos = [otraRevista, criticoPago3, otroUsuarioPositivo])
+	
+	
+	method initialize() {
+	plataforma.aniadirJuego(unJuego)
+	}
+	
+	test "La plataforma detecta que tiene algun juego galardonado (sin críticas negativas) ya que solo tiene un juego que no tiene críticas" {
+	assert.that(plataforma.hayAlgunJuegoGalardonado())
+	}
+	
+	test "La plataforma detecta que no tiene algun juego galardonado" {
+	unUsuarioPositivo.criticar(unJuego)
+	unUsuarioNegativo.criticar(unJuego)
+	assert.notThat(plataforma.hayAlgunJuegoGalardonado())
+	}
+	
+	test "El critico pago1 critica positivamente a unJuego porque está dentro de sus juegosPagados"
+	{
+		assert.that(criticoPago1.daCriticaPositiva(unJuego))
+	}
+	
+	test "El critico pago2 critica negativamente a unJuego porque no está dentro de sus juegosPagados"
+	{
+		assert.notThat(criticoPago2.daCriticaPositiva(unJuego))
+	}
+	
+	test "Una revista critica negativamente a unJuego porque la mayoria de sus integrantes no critica positivamente a unJuego"
+	{
+		assert.notThat(unaRevista.daCriticaPositiva(unJuego))
+	}
+	
+	test "Otra revista critica positivamente a unJuego porque la mayoria de sus integrantes critica positivamente a unJuego"
+	{
+		assert.that(otraRevista.daCriticaPositiva(unJuego))
+	}
+	
+	test "La super revista tiene como integrante a la otra revista (la cual criticaba positivamentea unJuego)
+ y tiene como otro integrante a un critico pago3 que no critica positivamente a unJuego porque no está dentro de los juegos que le pagaron.
+Por lo tanto la mayoria de sus integrantes no critica positivamente a unJuego y la superRevista no critica positivamente a unJuego"
+	{
+		assert.notThat(superRevista.daCriticaPositiva(unJuego))
+	}
+	
+	test "La super revista positiva tiene como integrante a la otra revista (la cual criticaba positivamentea unJuego)
+ , tiene como otro integrante a un critico pago3 que no critica positivamente a unJuego porque no está dentro de los juegos que le pagaron y tiene
+como último integrante a otro usuario positivo que evalua positivamente a un juego.
+Por lo tanto la mayoria de sus integrantes critica positivamente a unJuego y la superRevista critica positivamente a unJuego"
+	{
+		assert.that(superRevistaPositiva.daCriticaPositiva(unJuego))
+	}
+
+}
+	
