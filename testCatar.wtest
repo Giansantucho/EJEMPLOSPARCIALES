@@ -1,0 +1,28 @@
+import example.*
+
+test "una entrada tiene 100 calorias"{
+	
+	const entrada = new Entrada()
+	
+	
+	assert.equals(100,entrada.caloriasPlato())
+	
+	
+}
+
+test "un plato principal con 10 de azucar tiene 130 calorias"{
+	
+	const principal = new Principales(azucar = 10)
+
+	
+	assert.equals(130,principal.caloriasPlato())
+}
+
+test "un postre tiene 460 calorias"{
+	
+	const postre = new Postre()
+	
+	
+	assert.equals(460,postre.caloriasPlato())
+	
+}
